@@ -21,7 +21,7 @@ sys.path.append(root_path)
 
 class HOIDataset(Dataset):
     NUM_CLASS = 21
-    def __init__(self, insize=512, mode='train', task='instance_segmentation', n_samples=None):
+    def __init__(self, insize=512, mode='train', task='instance_segmentation', n_samples=None,transformer=None):
         myanno_read=anno_read()
         self.annos = myanno_read
         assert mode in ['train', 'val', 'eval'], 'Data loading mode is invalid.'
@@ -29,7 +29,7 @@ class HOIDataset(Dataset):
         self.task = task
         self.train_list = []
         self.test_list = []
-
+        self.transformer=transformer
         # according to the task you choose
         # load image lists to train or test
         if task == 'instance_segmentation':
@@ -187,7 +187,9 @@ class HOIDataset(Dataset):
             img_path = params['coco_dir'] + '/' + 'img' + '/' + task + '/' + date + '/' + videoId + '/' + '{:08d}.jpg'.format(frameId)
             #print(img_path)
         else:
-            img_path = os.path.join(params['coco_dir'], 'val2017', '{:08d}.jpg'.format(img_id))
+            #img_path = os.path.join(params['coco_dir'], 'val2017', '{:08d}.jpg'.format(img_id))
+            img_path = params['coco_dir'] + '/' + 'img' + '/' + task + '/' + date + '/' + videoId + '/' + '{:08d}.jpg'.format(frameId)
+            print(img_path)
         img = cv2.imread(img_path)
 
         #ignore_mask = np.zeros(img.shape[:2], 'bool')
@@ -294,9 +296,10 @@ class HOIDataset(Dataset):
             marks = self.parse_seg_annotation(resized_polygon, resized_img)
 
             marks = torch.tensor(marks)
+            print('dataset:marks!!!!:',marks.shape)
             labels = torch.tensor(labels)
             obj_ids = torch.tensor(obj_ids)
-
+            resized_img=self.transformer(resized_img)
             return resized_img, marks, labels, obj_ids
     @property
     def classes(self):
