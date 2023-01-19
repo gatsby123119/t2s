@@ -57,7 +57,7 @@ class HOIDataset(Dataset):
 
 
         # get path information of each frame
-        self.frameIds, self.videoIds, self.date = anno_read.getFrameIds(self.imgIds)
+        self.frameIds, self.videoIds, self.date = myanno_read.getFrameIds(self.imgIds)
 
         if self.mode in ['val', 'eval'] and n_samples is not None:
             self.imgIds = random.sample(self.imgIds, n_samples)
