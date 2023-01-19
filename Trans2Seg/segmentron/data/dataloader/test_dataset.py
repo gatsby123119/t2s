@@ -20,8 +20,10 @@ root_path = os.path.split(os.path.split(os.path.split(cur_path)[0])[0])[0]
 sys.path.append(root_path)
 
 class HOIDataset(Dataset):
-    def __init__(self, anno_read, insize, mode='train', task='instance_segmentation', n_samples=None):
-        self.annos = anno_read
+    NUM_CLASS = 21
+    def __init__(self, insize=512, mode='train', task='instance_segmentation', n_samples=None):
+        myanno_read=anno_read()
+        self.annos = myanno_read
         assert mode in ['train', 'val', 'eval'], 'Data loading mode is invalid.'
         self.mode = mode
         self.task = task
@@ -39,7 +41,7 @@ class HOIDataset(Dataset):
                 self.train_list = sorted(set(self.train_list))
                 self.imgIds = self.train_list
                 
-                self.seg_imgIds = anno_read.getSegmentationIds(self.imgIds)
+                self.seg_imgIds = myanno_read.getSegmentationIds(self.imgIds)
                 self.seg_imgIds = sorted(set(self.seg_imgIds))
                 
             else:
@@ -50,7 +52,7 @@ class HOIDataset(Dataset):
                 self.test_list = sorted(set(self.test_list))
                 self.imgIds = self.test_list
                 # obtain ids from image with HOIs, filter image without HOIs
-                self.seg_imgIds = anno_read.getSegmentationIds(self.imgIds)
+                self.seg_imgIds = myanno_read.getSegmentationIds(self.imgIds)
                 self.seg_imgIds = sorted(set(self.seg_imgIds))
 
 
@@ -296,7 +298,29 @@ class HOIDataset(Dataset):
             obj_ids = torch.tensor(obj_ids)
 
             return resized_img, marks, labels, obj_ids
-
+    @property
+    def classes(self):
+        """Category names."""
+        return ('pipette',
+    'PCR_tube',
+    'tube',
+    'waste_box',
+    'vial',
+    'measuring_flask',
+    'beaker',
+    'wash_bottle',
+    'water_bottle',
+    'erlenmeyer_flask',
+    'culture_plate',
+    'spoon',
+    'electronic_scale',
+    'LB_solution',
+    'stopwatch',
+    'D_sorbitol',
+    'solution_P1',
+    'plastic_bottle',
+    'agarose',
+    'cell_spreader')
 if __name__ == "__main__":#裁剪为512，512
     myanno_read=anno_read()
     train_dataset=HOIDataset(myanno_read,512)
