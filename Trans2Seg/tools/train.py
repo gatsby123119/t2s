@@ -136,7 +136,7 @@ class Trainer(object):
                                                              output_device=args.local_rank,
                                                              find_unused_parameters=True)
         # evaluation metrics
-        self.metric = SegmentationMetric(train_dataset.num_class, args.distributed)
+        self.metric = SegmentationMetric(train_dataset.NUM_CLASS, args.distributed)
 
     def train(self):
         self.save_to_disk = get_rank() == 0
