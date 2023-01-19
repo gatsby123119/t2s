@@ -9,7 +9,7 @@ import itertools
 import os
 from collections import defaultdict
 import sys
-from entity import params
+from .entity import params
 
 def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
