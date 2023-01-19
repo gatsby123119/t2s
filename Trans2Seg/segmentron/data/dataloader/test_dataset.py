@@ -11,8 +11,8 @@ from torch.utils.data import Dataset
 from pycocotools.coco import COCO
 from pycocotools import mask as maskUtils
 
-from entity import params, ObjectCategory
-from anno_read import anno_read
+from .entity import params, ObjectCategory
+from .anno_read import anno_read
 # coco dataset (coco_train, mode, imgids)
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
