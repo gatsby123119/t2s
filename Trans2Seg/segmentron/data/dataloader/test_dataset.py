@@ -190,7 +190,7 @@ class HOIDataset(Dataset):
             img_path = os.path.join(params['coco_dir'], 'val2017', '{:08d}.jpg'.format(img_id))
         img = cv2.imread(img_path)
 
-        ignore_mask = np.zeros(img.shape[:2], 'bool')
+        #ignore_mask = np.zeros(img.shape[:2], 'bool')
 
         if self.mode == 'eval':
             return img, img_id, segs_anns
