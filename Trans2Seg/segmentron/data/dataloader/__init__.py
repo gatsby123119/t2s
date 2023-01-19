@@ -19,7 +19,7 @@ datasets = {
     'cityscape': CitySegmentation,
     'sbu': SBUSegmentation,
     'transparent11': TransparentSegmentation, 
-    'transparent11_boundary': TransparentSegmentationBoundary
+    'transparent11_boundary': TransparentSegmentationBoundary,
     'mytrans':HOIDataset
 }
 
