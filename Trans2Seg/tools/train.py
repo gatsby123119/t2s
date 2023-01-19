@@ -55,37 +55,42 @@ class Trainer(object):
                        'base_size': cfg.TRAIN.BASE_SIZE,
                        'crop_size': cfg.TEST.CROP_SIZE}
 
-        train_dataset = get_segmentation_dataset(cfg.DATASET.NAME, split='train', mode='train', **data_kwargs)
-        val_dataset = get_segmentation_dataset(cfg.DATASET.NAME, split='val', mode='testval', **data_kwargs_testval)
-        test_dataset = get_segmentation_dataset(cfg.DATASET.NAME, split='test', mode='testval', **data_kwargs_testval)
+        train_dataset = get_segmentation_dataset(cfg.DATASET.NAME, mode='train',transformer=input_transform)
+        
+        val_dataset = get_segmentation_dataset(cfg.DATASET.NAME, mode='val',transformer=input_transform)
 
+        test_dataset = get_segmentation_dataset(cfg.DATASET.NAME, mode='val',transformer=input_transform)
+        
         self.classes = train_dataset.classes
-
+        
         self.iters_per_epoch = len(train_dataset) // (args.num_gpus * cfg.TRAIN.BATCH_SIZE)
         self.max_iters = cfg.TRAIN.EPOCHS * self.iters_per_epoch
 
         train_sampler = make_data_sampler(train_dataset, shuffle=True, distributed=args.distributed)
         train_batch_sampler = make_batch_data_sampler(train_sampler, cfg.TRAIN.BATCH_SIZE, self.max_iters, drop_last=True)
-
+        
         val_sampler = make_data_sampler(val_dataset, False, args.distributed)
         val_batch_sampler = make_batch_data_sampler(val_sampler, cfg.TEST.BATCH_SIZE, drop_last=False)
-
+        
         test_sampler = make_data_sampler(test_dataset, False, args.distributed)
         test_batch_sampler = make_batch_data_sampler(test_sampler, cfg.TEST.BATCH_SIZE, drop_last=False)
-
+        
         self.train_loader = data.DataLoader(dataset=train_dataset,
                                             batch_sampler=train_batch_sampler,
                                             num_workers=cfg.DATASET.WORKERS,
                                             pin_memory=True)
+        
         self.val_loader = data.DataLoader(dataset=val_dataset,
                                           batch_sampler=val_batch_sampler,
                                           num_workers=cfg.DATASET.WORKERS,
                                           pin_memory=True)
+
+        
         self.test_loader = data.DataLoader(dataset=test_dataset,
                                           batch_sampler=test_batch_sampler,
                                           num_workers=cfg.DATASET.WORKERS,
                                           pin_memory=True)
-
+        
         # create network
         self.model = get_segmentation_model().to(self.device)
         
@@ -148,15 +153,18 @@ class Trainer(object):
 
         self.model.train()
         iteration = self.start_epoch * iters_per_epoch if self.start_epoch > 0 else 0
-        for (images, targets, _) in self.train_loader:
+        for (images, targets, _, _) in self.train_loader:
             epoch = iteration // iters_per_epoch + 1
             iteration += 1
 
             images = images.to(self.device)
             targets = targets.to(self.device)
-
+            print('targets!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
+            targets = torch.argmax(targets, dim=1)
+            print('targets2!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
             outputs = self.model(images)
-            loss_dict = self.criterion(outputs, targets)
+      
+            loss_dict = self.criterion(outputs, targets.squeeze(1).long())
             losses = sum(loss for loss in loss_dict.values())
             # reduce losses over all GPUs for logging purposes
             loss_dict_reduced = reduce_loss_dict(loss_dict)
@@ -203,10 +211,10 @@ class Trainer(object):
             model = self.model
         torch.cuda.empty_cache()
         model.eval()
-        for i, (image, target, filename) in enumerate(self.val_loader):
+        for i, (image, target, _,_) in enumerate(self.val_loader):
             image = image.to(self.device)
             target = target.to(self.device)
-
+            target = torch.argmax(target, dim=1)
             with torch.no_grad():
                 if cfg.DATASET.MODE == 'val' or cfg.TEST.CROP_SIZE is None:
                     output = model(image)[0]
@@ -215,7 +223,8 @@ class Trainer(object):
                     assert cfg.TEST.CROP_SIZE[0] == size[0]
                     assert cfg.TEST.CROP_SIZE[1] == size[1]
                     output = model(image)[0]
-
+            print('train-output',output.shape)
+            print('train-target',target.shape)
             self.metric.update(output, target)
             pixAcc, mIoU, category_iou = self.metric.get(return_category_iou=True)
             logging.info("[EVAL] Sample: {:d}, pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc * 100, mIoU * 100))
@@ -229,12 +238,13 @@ class Trainer(object):
             model = self.model.module
         else:
             model = self.model
+        
         torch.cuda.empty_cache()
         model.eval()
-        for i, (image, target, filename) in enumerate(self.test_loader):
+        for i, (image, target, _,_) in enumerate(self.test_loader):
             image = image.to(self.device)
             target = target.to(self.device)
-
+            target = torch.argmax(target, dim=1)
             with torch.no_grad():
                 if cfg.DATASET.MODE == 'test' or cfg.TEST.CROP_SIZE is None:
                     output = model(image)[0]
