@@ -159,9 +159,9 @@ class Trainer(object):
 
             images = images.to(self.device)
             targets = targets.to(self.device)
-            print('targets!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
+            #print('targets!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
             targets = torch.argmax(targets, dim=1)
-            print('targets2!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
+            #print('targets2!!!!!!!!!!!!!!!!!:',torch.squeeze(targets).shape)
             outputs = self.model(images)
       
             loss_dict = self.criterion(outputs, targets.squeeze(1).long())
@@ -223,8 +223,8 @@ class Trainer(object):
                     assert cfg.TEST.CROP_SIZE[0] == size[0]
                     assert cfg.TEST.CROP_SIZE[1] == size[1]
                     output = model(image)[0]
-            print('train-output',output.shape)
-            print('train-target',target.shape)
+            #print('train-output',output.shape)
+            #print('train-target',target.shape)
             self.metric.update(output, target)
             pixAcc, mIoU, category_iou = self.metric.get(return_category_iou=True)
             logging.info("[EVAL] Sample: {:d}, pixAcc: {:.3f}, mIoU: {:.3f}".format(i + 1, pixAcc * 100, mIoU * 100))
