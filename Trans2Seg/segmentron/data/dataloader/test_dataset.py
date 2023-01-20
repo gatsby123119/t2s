@@ -28,6 +28,7 @@ class HOIDataset(Dataset):
         self.mode = mode
         self.task = task
         self.train_list = []
+       
         self.test_list = []
         self.transformer=transformer
         # according to the task you choose
@@ -91,9 +92,9 @@ class HOIDataset(Dataset):
         if self.mode == 'train':
             # img_path = os.path.join(params['coco_dir'], '0802', videoId, '{:012d}.jpg'.format(frameId))
             img_path = params['coco_dir'] + '/' + 'img' + '/' + 'collaboration' + '/' + date + '/' + videoId + '/' + '{:08d}.jpg'.format(frameId)
-            print(img_path)
+            #print(img_path)
         else:
-            img_path = os.path.join(params['coco_dir'], 'val2017', '{:08d}.jpg'.format(img_id))
+            img_path = params['coco_dir'] + '/' + 'img' + '/' + 'collaboration' + '/' + date + '/' + videoId + '/' + '{:08d}.jpg'.format(frameId)
         img = cv2.imread(img_path)
 
         ignore_mask = np.zeros(img.shape[:2], 'bool')
@@ -172,10 +173,10 @@ class HOIDataset(Dataset):
             img_id = self.imgIds[ind]
             seg_img_id = self.seg_imgIds[ind]
         #对应ind的img_id和seg_img_id
-        print(img_id)
-        print(seg_img_id)
+        #print(img_id)
+        #print(seg_img_id)
         segs_for_img = self.annos.loadSegs(ids=[seg_img_id])
-        print(segs_for_img)
+        #print(segs_for_img)
         segs_anns = segs_for_img
         
         # get path information of each frame and load the image
@@ -189,7 +190,7 @@ class HOIDataset(Dataset):
         else:
             #img_path = os.path.join(params['coco_dir'], 'val2017', '{:08d}.jpg'.format(img_id))
             img_path = params['coco_dir'] + '/' + 'img' + '/' + task + '/' + date + '/' + videoId + '/' + '{:08d}.jpg'.format(frameId)
-            print(img_path)
+            #print(img_path)
         img = cv2.imread(img_path)
 
         #ignore_mask = np.zeros(img.shape[:2], 'bool')
@@ -296,7 +297,7 @@ class HOIDataset(Dataset):
             marks = self.parse_seg_annotation(resized_polygon, resized_img)
 
             marks = torch.tensor(marks)
-            print('dataset:marks!!!!:',marks.shape)
+            #print('dataset:marks!!!!:',marks.shape)
             labels = torch.tensor(labels)
             obj_ids = torch.tensor(obj_ids)
             resized_img=self.transformer(resized_img)
